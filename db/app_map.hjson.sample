@@ -1,0 +1,14 @@
+{
+    // Hjson format is extended JSON.
+    // - You can write comment in this file.
+    // - commas are optionnal.
+
+    // app id
+    "jp.juggler.subwaytooter": {
+    
+        // FCM server key
+        serverKey: "*****"
+
+    }
+
+}

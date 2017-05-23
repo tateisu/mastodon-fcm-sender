@@ -1,0 +1,32 @@
+{
+    // Hjson format is extended JSON.
+    // - You can write comment in this file.
+    // - commas are optionnal.
+
+    // makes entries for each instance that is allowed to enavle push notification.
+    // please use only lower-case in instance URL.
+
+    "https://mastodon.juggler.jp": {
+
+        // mastodon-streaming-listener API endpoint
+        urlStreamingListenerRegister: "http://172.17.0.1:4002/register"
+        urlStreamingListenerUnregister: "http://172.17.0.1:4002/unregister"
+
+        // ID and Secret for each app.
+        apps: {
+            "jp.juggler.subwaytooter": "the secret to connect streaming-listener"
+        }
+
+    }
+
+    // if you want don't limit instance, uncomment this.
+    // "*" :{
+    //    // mastodon-streaming-listener API endpoint
+    //    urlStreamingListenerRegister: "http://172.17.0.1:4002/register"
+    //    urlStreamingListenerUnregister: "http://172.17.0.1:4002/unregister"
+    //    // ID and Secret for each app.
+    //    apps: {
+    //       "jp.juggler.subwaytooter" : "the secret to connect streaming-listener"
+    //    }
+    // }
+}
