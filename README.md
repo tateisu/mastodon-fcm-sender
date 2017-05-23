@@ -1,21 +1,36 @@
 # mastodon-fcm-sender
 
+simple server to relay notifications from mastodon-streaming-listener to Firebase Cloud Messaging
+
 ## API
 
 ### POST /register 
 
 (parameters)
-- instanceUrl : URL of Mastodon instance you want to listen. ex) https://mastodon.juggler.jp .
+- instance_url : URL of Mastodon instance you want to listen. ex) https://mastodon.juggler.jp .
 - tag : any String that can be used for management in your app. this is also used for a part of unique key of registrations.
-- appId : ID and secret of the your app.
-- appSecret : ID and secret of the your app.
-- accessToken : The access token you get from Mastodon's oAuth API.
-- deviceToken : The device token that is used to sending FCM
+- app_id : ID and secret of the your app.
+- access_token : The access token you get from Mastodon's oAuth API.
+- device_token : The device token that is used to sending FCM
 
 (notice)
 Your app needs to call /register repeatly within 3 days to keep listening.
 
 ### POST /unregister
+
+(parameters)
+- instance_url : same of specified in /register.
+- tag : same of specified in /register.
+- app_id : same of specified in /register.
+
+(notice)
+The unique key of listener registration is : instanceUrl + appId + tag.
+If you want to certainly unregister registration, You have to make same these parameters.
+
+### POST /callback
+
+see 'Callback' section in https://github.com/tateisu/mastodon-streaming-listener .
+
 
 (parameters)
 - instanceUrl : same of specified in /register.
@@ -27,3 +42,28 @@ Your app needs to call /register repeatly within 3 days to keep listening.
 The unique key of listener registration is : instanceUrl + appId + tag.
 If you want to certainly unregister registration, You have to make same these parameters.
 
+## installation (using docker-compose)
+
+after git clone , you have to change some file.
+
+```
+# copy sample configuration files
+cp db/app_map.hjson.sample db/app_map.hjson
+cp db/instance_map.hjson.sample db/instance_map.hjson
+
+(edit these .hjson files to configure for client app and instances)
+
+# create new database file if not exists
+sqlite db/fcm-sender.sqlite
+
+# make database file that readable from 'app1' user in container
+chown -R 1001:1001 db
+
+
+docker-compose build
+
+docker-compose up
+```
+
+default port is 4001. you can configure exposed port in docker-compose.yml.
+You should make web frontend (nginx) to wrap with HTTPS.
