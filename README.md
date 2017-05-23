@@ -1,4 +1,4 @@
-# mastodon-fcm-sender
+# mastodon-fcm-sender (not work yet)
 
 simple server to relay notifications from mastodon-streaming-listener to Firebase Cloud Messaging
 
@@ -30,17 +30,6 @@ If you want to certainly unregister registration, You have to make same these pa
 ### POST /callback
 
 see 'Callback' section in https://github.com/tateisu/mastodon-streaming-listener .
-
-
-(parameters)
-- instanceUrl : same of specified in /register.
-- tag : same of specified in /register.
-- appId : same of specified in /register.
-- appSecret : secret of the your app.
-
-(notice)
-The unique key of listener registration is : instanceUrl + appId + tag.
-If you want to certainly unregister registration, You have to make same these parameters.
 
 ## installation (using docker-compose)
 
