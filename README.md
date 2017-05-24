@@ -33,33 +33,55 @@ see 'Callback' section in https://github.com/tateisu/mastodon-streaming-listener
 
 ## installation (using docker-compose)
 
+### prepare database 
+Please make a database for this app. and memo the parameters that required to connect from app to database.
+
+```
+# type of db. One of mysql, postgres, mssql. (Don't use sqlite)
+DB_DIALECT=postgres
+
+# host name or IP addres of database server
+DB_HOST=172.17.0.1
+
+# port number of database server
+DB_PORT=4003
+
+# name of database
+DB_NAME=fcm_sender
+
+# login information
+DB_USER=fcm_sender
+DB_PASS=***
+```
+
 after git clone , you have to change some file.
 
 ```
 # copy sample configuration files
-cp db/app_map.hjson.sample db/app_map.hjson
-cp db/instance_map.hjson.sample db/instance_map.hjson
+cp config/app_map.hjson.sample config/app_map.hjson
+cp config/instance_map.hjson.sample config/instance_map.hjson
 
 (edit these .hjson files to configure for client app and instances)
 
 # copy sample .env.production files
 cp .env.production.sample .env.production
 
-(edit this file to configure configuration)
+(edit this file to configure database connection, callback url )
 
+# make directory writable for a counter.
+chown 1001:1001 config
+```
 
-# create new database file if not exists
-sqlite db/fcm-sender.sqlite 'select 1;'
+### build and start 
 
-# make database file that readable from 'app1' user in container
-chown -R 1001:1001 db
-
-# edit docker-compose.yml
-
+```
 docker-compose build
 
 docker-compose up
 ```
 
-default port is 4001. you can configure exposed port in docker-compose.yml.
-You should make web frontend (nginx) to wrap with HTTPS.
+### configure nginx
+
+This app listens on port 4001 at default.
+You can configure exposed port in docker-compose.yml.
+You should use Web frontend (nginx) to wrap with HTTPS.

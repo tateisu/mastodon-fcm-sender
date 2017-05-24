@@ -24,8 +24,7 @@ if (!callbackUrl) {
 const sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
-    process.env.DB_PASS,
-    {
+    process.env.DB_PASS, {
         dialect: process.env.DB_DIALECT,
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
@@ -34,9 +33,9 @@ const sequelize = new Sequelize(
     }
 )
 
-const appMap = Hjson.parse(fs.readFileSync('db/app_map.hjson', 'utf8'));
+const appMap = Hjson.parse(fs.readFileSync('config/app_map.hjson', 'utf8'));
 
-const instanceMap = Hjson.parse(fs.readFileSync('db/instance_map.hjson', 'utf8'));
+const instanceMap = Hjson.parse(fs.readFileSync('config/instance_map.hjson', 'utf8'));
 
 const checkAppId = (appId) => {
     if (!appId) {
@@ -271,7 +270,7 @@ app.use('/register', bodyParser.urlencoded({
 app.post('/register', (req, res) => {
 
     const log = (level, message) => npmlog.log(level, "register", message)
-    
+
     const now = (new Date()).getTime();
 
     var error;
@@ -316,11 +315,11 @@ app.post('/register', (req, res) => {
                     connectForUser(model);
                 });
             }
-    }).catch(error => {
-        log('error', error , error.stack)
-    })
+        }).catch(error => {
+            log('error', error, error.stack)
+        })
 
-    res.sendStatus(201)
+    res.sendStatus(202)
 })
 
 app.use('/unregister', bodyParser.urlencoded({
@@ -330,7 +329,7 @@ app.use('/unregister', bodyParser.urlencoded({
 app.post('/unregister', (req, res) => {
 
     const log = (level, message) => npmlog.log(level, "unregister", message)
-    
+
     var error;
 
     const appId = req.body.app_id;
@@ -361,10 +360,10 @@ app.post('/unregister', (req, res) => {
             disconnectForUser(registration)
         }
     }).catch(error => {
-        log('error', error , error.stack)
+        log('error', error, error.stack)
     })
 
-    res.sendStatus(201)
+    res.sendStatus(202)
 })
 
 app.use('/callback', bodyParser.json())
@@ -372,11 +371,11 @@ app.use('/callback', bodyParser.json())
 app.post('/callback', (req, res) => {
 
     const log = (level, message) => npmlog.log(level, "callback", message)
-    
+
     var error;
 
     var json = req.body;
-    log('info',"json="+util.inspect(json))
+    log('info', "json=" + util.inspect(json))
 
     const appId = json.appId;
     error = checkAppId(appId);
@@ -405,21 +404,21 @@ app.post('/callback', (req, res) => {
             log('info', "registration=" + registration)
 
             sendFCM(registration, Hjson.parse(json.payload))
-        }else{
+        } else {
             log('info', `missing registration for ${instanceUrl},${appId},${tag},`)
         }
     }).catch(error => {
-        log('error', error , error.stack)
+        log('error', error, error.stack)
     })
 
-    res.sendStatus(201)
+    res.sendStatus(202)
 })
 
 
 app.get('/counter', (req, res) => {
     const log = (level, message) => npmlog.log(level, "counter", message)
 
-    const file = 'db/counter.hjson';
+    const file = 'config/counter.hjson';
     const file_tmp = file + ".tmp";
     var map;
     try {

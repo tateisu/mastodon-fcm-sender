@@ -7,4 +7,5 @@ services:
     ports:
     - "172.17.0.1:4001:4001"
     volumes:
-    - ./db:/app1/db
+    - ./config:/app1/config
+
