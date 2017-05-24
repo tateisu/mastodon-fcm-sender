@@ -275,6 +275,8 @@ app.post('/register', (req, res) => {
         if (model ) {
             npmlog.log('info',"register: " +model)
             npmlog.log('info',"register: " +model.update)
+            npmlog.log('info',"register: " +model.set)
+            npmlog.log('info',"register: " +model.save)
 
             model.update({
 				lastUpdate: now,
