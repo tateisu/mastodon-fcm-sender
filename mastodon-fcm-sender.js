@@ -7,6 +7,7 @@ import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
 import querystring from 'querystring'
+import util from 'util'
 
 
 const app = express()
@@ -155,7 +156,8 @@ const connectForUser = (registration) => {
             }).then(response => {
                 log('info', `register: status ${response.status}: ${JSON.stringify(response.data)}`)
             }).catch(error => {
-                log('error', `Error sending to register, status: ${error.response.status}: ${JSON.stringify(error.response.data)}`)
+                log('error', "Error sending to register");
+                log('error', util.inspect(error));
             })
         }
     }
@@ -185,7 +187,8 @@ const disconnectForUser = (registration) => {
             }).then(response => {
                 log('info', `unregister: status ${response.status}: ${JSON.stringify(response.data)}`)
             }).catch(error => {
-                log('error', `Error sending to unregister, status: ${error.response.status}: ${JSON.stringify(error.response.data)}`)
+                log('error', "Error sending to unregister");
+                log('error', util.inspect(error));
             })
         }
     }
