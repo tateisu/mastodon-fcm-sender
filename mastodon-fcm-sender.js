@@ -379,7 +379,7 @@ function routeCounter(req,res){
             counter_db.get('select max(id) as b from counter',{}, function (err, res) {
                 count = res.b;
                 log("info",res);
-                res.status(200).send( res.b );
+                res.send( ""+ res.b );
                 resolve();
             });
             counter_db.run('delete from counter where id < $a',{$a : count});
