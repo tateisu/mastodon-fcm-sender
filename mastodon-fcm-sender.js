@@ -257,6 +257,8 @@ app.use('/register', bodyParser.urlencoded({
 
 app.post('/register', (req, res) => {
 
+    const log = (level, message) => npmlog.log(level, "register", message)
+    
     const now = (new Date()).getTime();
 
     var error;
@@ -301,7 +303,9 @@ app.post('/register', (req, res) => {
                     connectForUser(model);
                 });
             }
-        })
+    }).catch(error => {
+        log('error', error)
+    })
 
     res.sendStatus(201)
 })
@@ -312,6 +316,8 @@ app.use('/unregister', bodyParser.urlencoded({
 
 app.post('/unregister', (req, res) => {
 
+    const log = (level, message) => npmlog.log(level, "unregister", message)
+    
     var error;
 
     const appId = req.body.app_id;
@@ -341,6 +347,8 @@ app.post('/unregister', (req, res) => {
             npmlog.log('info', "unregister: " + registration)
             disconnectForUser(registration)
         }
+    }).catch(error => {
+        log('error', error)
     })
 
     res.sendStatus(201)
@@ -350,6 +358,8 @@ app.use('/callback', bodyParser.json())
 
 app.post('/callback', (req, res) => {
 
+    const log = (level, message) => npmlog.log(level, "callback", message)
+    
     var error;
 
     var json = req.body;
@@ -383,6 +393,8 @@ app.post('/callback', (req, res) => {
 
             sendFCM(registration, Hjson.parse(json.payload))
         }
+    }).catch(error => {
+        log('error', error)
     })
 
     res.sendStatus(201)
