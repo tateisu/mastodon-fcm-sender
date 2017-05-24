@@ -6,6 +6,8 @@ import morgan from 'morgan'
 import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
+import util from 'util'
+
 
 const app       = express()
 const port      = process.env.PORT || 4001
@@ -274,7 +276,7 @@ app.post('/register', (req, res) => {
 
         if (model ) {
             npmlog.log('info',"register: " +model)
-            npmlog.log('info',"register: " +model.update)
+            npmlog.log('info',"register: " +util.inspect(model) )
             npmlog.log('info',"register: " +model.set)
             npmlog.log('info',"register: " +model.save)
 
