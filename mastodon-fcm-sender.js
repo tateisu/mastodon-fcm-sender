@@ -12,6 +12,8 @@ import querystring from 'querystring'
 const app = express()
 const port = process.env.PORT || 4001
 
+process.on('unhandledRejection', console.dir);
+
 const callbackUrl = process.env.CALLBACK_URL;
 if (!callbackUrl) {
     npmlog.log('error', "callbackUrl", "missing CALLBACK_URL in environment.");
@@ -304,7 +306,7 @@ app.post('/register', (req, res) => {
                 });
             }
     }).catch(error => {
-        log('error', error)
+        log('error', error , error.stack)
     })
 
     res.sendStatus(201)
@@ -348,7 +350,7 @@ app.post('/unregister', (req, res) => {
             disconnectForUser(registration)
         }
     }).catch(error => {
-        log('error', error)
+        log('error', error , error.stack)
     })
 
     res.sendStatus(201)
@@ -394,7 +396,7 @@ app.post('/callback', (req, res) => {
             sendFCM(registration, Hjson.parse(json.payload))
         }
     }).catch(error => {
-        log('error', error)
+        log('error', error , error.stack)
     })
 
     res.sendStatus(201)
