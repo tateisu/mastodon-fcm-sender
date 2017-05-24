@@ -6,7 +6,6 @@ import morgan from 'morgan'
 import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
-import sqlite3 from 'sqlite3'
 
 const app       = express()
 const port      = process.env.PORT || 4001
@@ -17,8 +16,6 @@ const sequelize = new Sequelize('sqlite://fcm-sender.sqlite', {
   logging: npmlog.verbose,
     storage: 'db/fcm-sender.sqlite'
 })
-
-const counter_db = new sqlite3.Database('db/counter.sqlite');
 
 const appMap = Hjson.parse(fs.readFileSync('db/app_map.hjson', 'utf8'));
 
@@ -368,6 +365,7 @@ app.get('/counter',(req, res) => {
     const log = (level, message) => npmlog.log(level, "counter", message)
 
     const file = 'db/counter.hjson';
+    const file_tmp = file +".tmp";
     var map;
     try{
         map = Hjson.parse( fs.readFileSync(file, 'utf8'))
@@ -383,7 +381,8 @@ app.get('/counter',(req, res) => {
         ++count;
     }
     map.count = count;
-    fs.writeFileSync(file, Hjson.stringify(map) );
+    fs.writeFileSync(file_tmp, Hjson.stringify(map) );
+    fs.renameSync( file_tmp,file)
     
     res.send( 200,count);
 });

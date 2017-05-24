@@ -44,7 +44,6 @@ cp db/instance_map.hjson.sample db/instance_map.hjson
 
 # create new database file if not exists
 sqlite db/fcm-sender.sqlite 'select 1;'
-sqlite db/counter.sqlite 'select 1;'
 
 # make database file that readable from 'app1' user in container
 chown -R 1001:1001 db
