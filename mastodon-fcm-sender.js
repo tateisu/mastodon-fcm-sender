@@ -21,10 +21,17 @@ if (!callbackUrl) {
     process.exit();
 }
 
-const sequelize = new Sequelize('sqlite://fcm-sender.sqlite', {
-    logging: npmlog.verbose,
-    storage: 'db/fcm-sender.sqlite'
-})
+const sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASS,
+    {
+        host: process.env.DB_HOST,
+        dialect: process.env.DB_DIALECT,
+        logging: npmlog.verbose
+        //    storage: 'db/fcm-sender.sqlite'
+    }
+)
 
 const appMap = Hjson.parse(fs.readFileSync('db/app_map.hjson', 'utf8'));
 
@@ -102,7 +109,7 @@ const checkInstanceUrl = (instanceUrl, appId) => {
 }
 
 
-const Registration = sequelize.define('registration', {
+const Registration = sequelize.define('fcm_sender_registration', {
 
     lastUpdate: {
         type: Sequelize.BIGINT,
