@@ -6,13 +6,15 @@ import morgan from 'morgan'
 import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
+import querystring from 'querystring'
+
 
 const app = express()
 const port = process.env.PORT || 4001
 
 const callbackUrl = process.env.CALLBACK_URL;
-if(!callbackUrl ){
-    npmlog.log('error', "callbackUrl","missing CALLBACK_URL in environment.");
+if (!callbackUrl) {
+    npmlog.log('error', "callbackUrl", "missing CALLBACK_URL in environment.");
     process.exit();
 }
 
@@ -137,13 +139,17 @@ const connectForUser = (registration) => {
         const appSecret = getAppSecret(instanceEntry, registration.appId)
         if (urlStreamingListenerRegister && appSecret) {
             // streaming-listener に登録を出す
-            axios.post(urlStreamingListenerRegister, {
+            axios.post(urlStreamingListenerRegister, querystring.stringify({
                 instance_url: registration.instanceUrl,
                 tag: registration.tag,
                 app_id: registration.appId,
                 app_secret: appSecret,
                 access_token: registration.accessToken,
                 callback_url: callbackUrl
+            }), {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
             }).then(response => {
                 log('info', `register: status ${response.status}: ${JSON.stringify(response.data)}`)
             }).catch(error => {
@@ -165,11 +171,15 @@ const disconnectForUser = (registration) => {
         const appSecret = getAppSecret(instanceEntry, registration.appId)
         if (urlStreamingListenerUnregister && appSecret) {
             // streaming-listener に登録解除を出す
-            axios.post(urlStreamingListenerUnregister, {
+            axios.post(urlStreamingListenerUnregister, querystring.stringify({
                 instance_url: registration.instanceUrl,
                 tag: registration.tag,
                 app_id: registration.appId,
                 app_secret: appSecret
+            }), {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
             }).then(response => {
                 log('info', `unregister: status ${response.status}: ${JSON.stringify(response.data)}`)
             }).catch(error => {
