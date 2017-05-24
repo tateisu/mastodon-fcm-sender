@@ -376,7 +376,7 @@ app.post('/callback', (req, res) => {
     var error;
 
     var json = req.body;
-
+    log('info',"json="+util.inspect(json))
 
     const appId = json.appId;
     error = checkAppId(appId);
@@ -402,9 +402,11 @@ app.post('/callback', (req, res) => {
         }
     }).then((registration) => {
         if (registration) {
-            npmlog.log('info', "callback: " + registration)
+            log('info', "registration=" + registration)
 
             sendFCM(registration, Hjson.parse(json.payload))
+        }else{
+            log('info', `missing registration for ${instanceUrl},${appId},${tag},`)
         }
     }).catch(error => {
         log('error', error , error.stack)
