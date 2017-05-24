@@ -6,8 +6,6 @@ import morgan from 'morgan'
 import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
-import util from 'util'
-
 
 const app = express()
 const port = process.env.PORT || 4001
@@ -15,6 +13,7 @@ const port = process.env.PORT || 4001
 const callbackUrl = process.env.CALLBACK_URL;
 if(!callbackUrl ){
     npmlog.log('error', "callbackUrl","missing CALLBACK_URL in environment.");
+    process.exit();
 }
 
 const sequelize = new Sequelize('sqlite://fcm-sender.sqlite', {
