@@ -8,6 +8,7 @@ import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
 import sqlite3 from 'sqlite3'
+import wrapAsync from 'express-wrap-async';
 
 const app       = express()
 const port      = process.env.PORT || 4001
@@ -365,12 +366,12 @@ app.post('/callback', (req, res) => {
 })
 
 
-app.get('/counter', (req, res) => {
+app.get('/counter',wrapAsync( new Promise((resolve) => {
 
     const log = (level, message) => npmlog.log(level, "counter", message)
-    
+
     var count;
-    
+
     counter_db.serialize(function() {
         log("info","start");
         counter_db.run('create table if not exists counter( id integer primary key AUTOINCREMENT,a text)');
@@ -379,14 +380,16 @@ app.get('/counter', (req, res) => {
         counter_db.get('select max(id) as b from counter',{}, function (err, res) {
             count = res.b;
             log("info",res);
+            res.status(200).send( res.b );
+            resolve();
         });
         counter_db.run('delete from counter where id < $a',{$a : count});
         counter_db.run("COMMIT");
         log("info","end");
     });
+
+})));
     
-    res.status(200).send(count);
-});
 
 app.listen(port, () => {
   npmlog.log('info', `Listening on port ${port}`)
