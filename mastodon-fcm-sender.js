@@ -7,8 +7,6 @@ import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
 import sqlite3 from 'sqlite3'
-// import wrapAsync from 'express-wrap-async';
-import wrap from 'express-async-wrap';
 
 const app       = express()
 const port      = process.env.PORT || 4001
