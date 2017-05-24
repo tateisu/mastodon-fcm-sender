@@ -356,7 +356,6 @@ app.post('/unregister', (req, res) => {
         }
     }).then((registration) => {
         if (registration) {
-            npmlog.log('info', "unregister: " + registration)
             disconnectForUser(registration)
         }
     }).catch(error => {
@@ -407,8 +406,6 @@ app.post('/callback', (req, res) => {
         }
     }).then((registration) => {
         if (registration) {
-            log('info', "registration=" + registration)
-
             sendFCM(registration, payload)
         } else {
             log('info', `missing registration for ${instanceUrl},${appId},${tag},`)
