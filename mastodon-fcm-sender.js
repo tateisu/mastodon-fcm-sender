@@ -272,7 +272,7 @@ app.post('/register', (req, res) => {
     
     Registration
         .findOrCreate(options)
-        .then( (model,created) => {
+        .then( model => {
 
         if (model ) {
             model = model[0];
