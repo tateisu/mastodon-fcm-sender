@@ -367,17 +367,22 @@ app.post('/callback', (req, res) => {
 
 app.get('/counter', (req, res) => {
 
+    const log = (level, message) => npmlog.log(level, "counter", message)
+    
     var count;
     
     counter_db.serialize(function() {
+        log("info","start");
         counter_db.run('create table if not exists counter( id integer primary key AUTOINCREMENT,a text)');
         counter_db.run("BEGIN TRANSACTION");
-        counter_db.run('insert into counter(a) values ($a)', {$a: '' } );
-        counter_db.get('select max(id) as a from counter',{}, function (err, res) {
-            count = res.a;
+        counter_db.run('insert into counter(a) values ($a)', {$a: 'a' } );
+        counter_db.get('select max(id) as b from counter',{}, function (err, res) {
+            count = res.b;
+            log("info",res);
         });
         counter_db.run('delete from counter where id < $a',{$a : count});
         counter_db.run("COMMIT");
+        log("info","end");
     });
     
     res.status(200).send(count);
