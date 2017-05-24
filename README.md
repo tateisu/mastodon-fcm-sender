@@ -7,9 +7,9 @@ simple server to relay notifications from mastodon-streaming-listener to Firebas
 ### POST /register 
 
 (parameters)
-- instance_url : URL of Mastodon instance you want to listen. ex) https://mastodon.juggler.jp .
-- tag : any String that can be used for management in your app. this is also used for a part of unique key of registrations.
-- app_id : ID and secret of the your app.
+- instance_url : URL of Mastodon instance you want to listen. ex) https://mastodon.juggler.jp . max length is 255 byte.
+- tag : any String that can be used for management in your app. this is also used for a part of unique key of registrations. max length is 255 byte.
+- app_id : ID and secret of the your app. max length is 255 byte.
 - access_token : The access token you get from Mastodon's oAuth API.
 - device_token : The device token that is used to sending FCM
 
