@@ -368,8 +368,14 @@ app.get('/counter',(req, res) => {
     const log = (level, message) => npmlog.log(level, "counter", message)
 
     const file = 'db/counter.hjson';
-    
-    var map = Hjson.parse( fs.readFileSync(file, 'utf8'))
+    var map;
+    try{
+        map = Hjson.parse( fs.readFileSync(file, 'utf8'))
+    }catch(e){
+        log('error',e)
+        map = {};
+    }
+
     var count = map.count;
     if(!count){
         count = 1;
