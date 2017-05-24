@@ -274,6 +274,7 @@ app.post('/register', (req, res) => {
 
         if (registration ) {
             npmlog.log('info',"register: " +registration)
+            npmlog.log('info',"register: " +registration.update)
 
             registration.update({
 				lastUpdate: now,
