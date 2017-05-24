@@ -7,6 +7,7 @@ import morgan from 'morgan'
 import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
+import sqlite3 from 'sqlite3'
 
 const app       = express()
 const port      = process.env.PORT || 4001
@@ -17,6 +18,8 @@ const sequelize = new Sequelize('sqlite://fcm-sender.sqlite', {
   logging: npmlog.verbose,
     storage: 'db/fcm-sender.sqlite'
 })
+
+const counter_db = new sqlite3.Database('db/counter.sqlite');
 
 const appMap = Hjson.parse(fs.readFileSync('db/app_map.hjson', 'utf8'));
 
@@ -361,6 +364,24 @@ app.post('/callback', (req, res) => {
     res.sendStatus(201)
 })
 
+
+app.get('/counter', (req, res) => {
+
+    var count;
+    
+    counter_db.serialize(function() {
+        counter_db.run('create table if not exists counter( id integer primary key AUTOINCREMENT)');
+        counter_db.run("BEGIN TRANSACTION");
+        counter_db.run('insert into counter() values ()', { } );
+        counter_db.get('select max(id) as a from counter',{}, function (err, res) {
+            count = res.a;
+        });
+        counter_db.run('insert into counter() values ()', { } );
+        counter_db.run("END TRANSACTION");
+    });
+    
+    res.status(200).send(count);
+});
 
 app.listen(port, () => {
   npmlog.log('info', `Listening on port ${port}`)
