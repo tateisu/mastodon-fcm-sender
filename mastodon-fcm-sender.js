@@ -275,6 +275,7 @@ app.post('/register', (req, res) => {
         .then( (model,created) => {
 
         if (model ) {
+            model = model[0];
             npmlog.log('info',"register: " +model)
             npmlog.log('info',"register: " +util.inspect(model) )
             npmlog.log('info',"register: " +model.set)
