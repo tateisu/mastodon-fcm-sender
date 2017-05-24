@@ -268,7 +268,7 @@ app.post('/register', (req, res) => {
 		}
 	}).then( (registration) => {
         if (registration ) {
-            npmlog.log("register: " +registration)
+            npmlog.log('info',"register: " +registration)
 			// 登録/更新された日時を覚えておく
             registration.update({
 				lastUpdate: now,
@@ -314,7 +314,8 @@ app.post('/unregister', (req, res) => {
 		}
 	}).then( (registration) => {
 		if (registration ) {
-			disconnectForUser(registration)
+            npmlog.log('info',"unregister: " +registration)
+            disconnectForUser(registration)
 		}
 	})
 
@@ -354,7 +355,8 @@ app.post('/callback', (req, res) => {
         }
     }).then( (registration) => {
         if (registration ) {
-           
+            npmlog.log('info',"callback: " +registration)
+
             sendFCM( registration, Hjson.parse(json.payload) )
         }
     })
