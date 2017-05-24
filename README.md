@@ -1,4 +1,4 @@
-# mastodon-fcm-sender (not work yet)
+# mastodon-fcm-sender
 
 simple server to relay notifications from mastodon-streaming-listener to Firebase Cloud Messaging
 

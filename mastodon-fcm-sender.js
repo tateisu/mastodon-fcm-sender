@@ -220,7 +220,7 @@ const sendFCM = (registration, payload) => {
         to: registration.deviceToken,
         priority: 'high',
         data: {
-            notification_id: payload.id
+            payload: payload
         }
     }
 
@@ -374,24 +374,30 @@ app.post('/callback', (req, res) => {
 
     var error;
 
-    var json = req.body;
-    log('info', "json=" + util.inspect(json))
+    const payload = req.body.payload;
+    if(!payload){
+        log('error', "missing payload. json=" + util.inspect(json))
+        res.send(400, error);
+        return;
+    }
+    
+    log('info','payload length='+payload.length);
 
-    const appId = json.appId;
+    const appId = req.body.appId;
     error = checkAppId(appId);
     if (error) {
         res.send(400, error);
         return;
     }
 
-    const instanceUrl = json.instanceUrl;
+    const instanceUrl = req.body.instanceUrl;
     error = checkInstanceUrl(instanceUrl, appId)
     if (error) {
         res.send(400, error);
         return;
     }
 
-    const tag = json.tag;
+    const tag = req.body.tag;
 
     Registration.findOne({
         where: {
@@ -403,7 +409,7 @@ app.post('/callback', (req, res) => {
         if (registration) {
             log('info', "registration=" + registration)
 
-            sendFCM(registration, Hjson.parse(json.payload))
+            sendFCM(registration, payload)
         } else {
             log('info', `missing registration for ${instanceUrl},${appId},${tag},`)
         }
