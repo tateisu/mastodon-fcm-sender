@@ -270,19 +270,19 @@ app.post('/register', (req, res) => {
     
     Registration
         .findOrCreate(options)
-        .then( (registration) => {
+        .then( (model,created) => {
 
-        if (registration ) {
-            npmlog.log('info',"register: " +registration)
-            npmlog.log('info',"register: " +registration.update)
+        if (model ) {
+            npmlog.log('info',"register: " +model)
+            npmlog.log('info',"register: " +model.update)
 
-            registration.update({
+            model.update({
 				lastUpdate: now,
                 deviceToken:deviceToken,
                 accessToken:accessToken,
             } ).then( (ignored)=>{
                 // stream listener への接続を行う
-                connectForUser( registration );
+                connectForUser( model );
             });
 		}
         
