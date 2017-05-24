@@ -85,3 +85,10 @@ docker-compose up
 This app listens on port 4001 at default.
 You can configure exposed port in docker-compose.yml.
 You should use Web frontend (nginx) to wrap with HTTPS.
+
+
+# Tweak 
+
+### create index
+
+`create unique index fcm_sender_registrations_iat on fcm_sender_registrations ( "instanceUrl","appId","tag" );`
