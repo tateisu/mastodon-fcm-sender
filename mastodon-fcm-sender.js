@@ -161,9 +161,9 @@ const connectForUser = (registration) => {
                     "Content-Type": "application/x-www-form-urlencoded"
                 }
             }).then(response => {
-                log('info', `register: status ${response.status}: ${JSON.stringify(response.data)}`)
+                log('info', `listener returns ${response.status}: ${JSON.stringify(response.data)}`)
             }).catch(error => {
-                log('error', "Error sending to register");
+                log('error', "request to listener#register failed.");
                 log('error', util.inspect(error));
             })
         }
@@ -192,9 +192,9 @@ const disconnectForUser = (registration) => {
                     "Content-Type": "application/x-www-form-urlencoded"
                 }
             }).then(response => {
-                log('info', `unregister: status ${response.status}: ${JSON.stringify(response.data)}`)
+                log('info', `listener returns ${response.status}: ${JSON.stringify(response.data)}`)
             }).catch(error => {
-                log('error', "Error sending to unregister");
+                log('error', "request to listener#unregister failed.");
                 log('error', util.inspect(error));
             })
         }
