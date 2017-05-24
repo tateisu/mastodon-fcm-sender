@@ -1,4 +1,3 @@
-import WebSocket from 'ws'
 import express from 'express'
 import axios from 'axios'
 import bodyParser from 'body-parser'
@@ -8,7 +7,8 @@ import Sequelize from 'sequelize'
 import Hjson from 'hjson'
 import fs from 'fs'
 import sqlite3 from 'sqlite3'
-import wrapAsync from 'express-wrap-async';
+// import wrapAsync from 'express-wrap-async';
+import wrap from 'express-async-wrap';
 
 const app       = express()
 const port      = process.env.PORT || 4001
@@ -365,31 +365,34 @@ app.post('/callback', (req, res) => {
     res.sendStatus(201)
 })
 
-function routeCounter(req,res){
-    return new Promise((resolve) => {
-        const log = (level, message) => npmlog.log(level, "counter", message)
+//function routeCounter(req,res){
+//    return new Promise((resolve) => {
+//       
+//    }); 
+//}
 
-        var count;
+app.get('/counter',(req, res) => {
+    const log = (level, message) => npmlog.log(level, "counter", message)
 
-        counter_db.serialize(function() {
-            log("info","start");
-            counter_db.run('create table if not exists counter( id integer primary key AUTOINCREMENT,a text)');
-            counter_db.run("BEGIN TRANSACTION");
-            counter_db.run('insert into counter(a) values ($a)', {$a: 'a' } );
-            counter_db.get('select max(id) as b from counter',{}, function (err, res) {
-                count = res.b;
-                log("info",res);
-                res.send( ""+ res.b );
-                resolve();
-            });
-            counter_db.run('delete from counter where id < $a',{$a : count});
-            counter_db.run("COMMIT");
-            log("info","end");
+    var count;
+    log("info","start1");
+    counter_db.serialize(function() {
+        log("info","start2");
+        counter_db.run('create table if not exists counter( id integer primary key AUTOINCREMENT,a text)');
+        counter_db.run("BEGIN TRANSACTION");
+        counter_db.run('insert into counter(a) values ($a)', {$a: 'a' } );
+        counter_db.get('select max(id) as b from counter',{}, function (err, res) {
+            count = res.b;
+            log("info",res);
+            res.send( ""+ res.b );
+            resolve();
         });
-    }); 
-}
-
-app.get('/counter',wrapAsync( routeCounter));
+        counter_db.run('delete from counter where id < $a',{$a : count});
+        counter_db.run("COMMIT");
+        log("info","end1");
+    });
+    log("info","end2");
+});
     
 
 app.listen(port, () => {
