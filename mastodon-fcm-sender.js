@@ -248,14 +248,14 @@ app.post('/register', (req, res) => {
     const appId = req.body.app_id;
     error = checkAppId(appId);
     if( error ){
-        res.status(400).send(error);
+        res.send(400,error);
         return;
     }
     
     const instanceUrl = req.body.instance_url.toLowerCase();
     error = checkInstanceUrl( instanceUrl , appId)
     if( error ){
-        res.status(400).send(error);
+        res.send(400,error);
         return;
     }
     
@@ -295,14 +295,14 @@ app.post('/unregister', (req, res) => {
     const appId = req.body.app_id;
     error = checkAppId(appId);
     if( error ){
-        res.status(400).send(error);
+        res.send(400,error);
         return;
     }
 
     const instanceUrl = req.body.instance_url.toLowerCase();
     error = checkInstanceUrl( instanceUrl , appId)
     if( error ){
-        res.status(400).send(error);
+        res.send(400,error);
         return;
     }
 
@@ -335,14 +335,14 @@ app.post('/callback', (req, res) => {
     const appId = json.appId;
     error = checkAppId(appId);
     if( error ){
-        res.status(400).send(error);
+        res.send(400,error);
         return;
     }
 
     const instanceUrl = json.instanceUrl;
     error = checkInstanceUrl( instanceUrl , appId)
     if( error ){
-        res.status(400).send(error);
+        res.send(400,error);
         return;
     }
 
@@ -363,33 +363,23 @@ app.post('/callback', (req, res) => {
     res.sendStatus(201)
 })
 
-//function routeCounter(req,res){
-//    return new Promise((resolve) => {
-//       
-//    }); 
-//}
 
 app.get('/counter',(req, res) => {
     const log = (level, message) => npmlog.log(level, "counter", message)
 
-    var count;
-    log("info","start1");
-    counter_db.serialize(function() {
-        log("info","start2");
-        counter_db.run('create table if not exists counter( id integer primary key AUTOINCREMENT,a text)');
-        counter_db.run("BEGIN TRANSACTION");
-        counter_db.run('insert into counter(a) values ($a)', {$a: 'a' } );
-        counter_db.get('select max(id) as b from counter',{}, function (err, res) {
-            count = res.b;
-            log("info",res);
-            res.send( ""+ res.b );
-            resolve();
-        });
-        counter_db.run('delete from counter where id < $a',{$a : count});
-        counter_db.run("COMMIT");
-        log("info","end1");
-    });
-    log("info","end2");
+    const file = 'db/counter.hjson';
+    
+    var map = Hjson.parse( fs.readFileSync(file, 'utf8'))
+    var count = map.count;
+    if(!count){
+        count = 1;
+    }else{
+        ++count;
+    }
+    map.count = count;
+    fs.writeFileSync(file, Hjson.stringify(map) );
+    
+    res.send( 200,count);
 });
     
 
