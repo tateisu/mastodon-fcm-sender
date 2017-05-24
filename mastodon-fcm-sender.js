@@ -260,25 +260,31 @@ app.post('/register', (req, res) => {
     const deviceToken = req.body.device_token;
     const tag = req.body.tag;
     
-	Registration.findOrCreate({
-		where: {
-			instanceUrl: instanceUrl,
+    const options = {
+        where: {
+            instanceUrl: instanceUrl,
             appId: appId,
             tag:tag
-		}
-	}).then( (registration) => {
+        }
+    };
+    
+    Registration
+        .findOrCreate(options)
+        .then( (registration) => {
+
         if (registration ) {
             npmlog.log('info',"register: " +registration)
-			// 登録/更新された日時を覚えておく
+
             registration.update({
 				lastUpdate: now,
                 deviceToken:deviceToken,
                 accessToken:accessToken,
-			} ).then( (ignored)=>{
+            } ).then( (ignored)=>{
                 // stream listener への接続を行う
                 connectForUser( registration );
             });
 		}
+        
 	})
 
 	res.sendStatus(201)
