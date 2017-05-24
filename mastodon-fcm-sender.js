@@ -13,6 +13,9 @@ const app = express()
 const port = process.env.PORT || 4001
 
 const callbackUrl = process.env.CALLBACK_URL;
+if(!callbackUrl ){
+    npmlog.log('error', "callbackUrl","missing CALLBACK_URL in environment.");
+}
 
 const sequelize = new Sequelize('sqlite://fcm-sender.sqlite', {
     logging: npmlog.verbose,

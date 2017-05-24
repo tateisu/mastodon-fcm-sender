@@ -42,12 +42,19 @@ cp db/instance_map.hjson.sample db/instance_map.hjson
 
 (edit these .hjson files to configure for client app and instances)
 
+# copy sample .env.production files
+cp .env.production.sample .env.production
+
+(edit this file to configure configuration)
+
+
 # create new database file if not exists
 sqlite db/fcm-sender.sqlite 'select 1;'
 
 # make database file that readable from 'app1' user in container
 chown -R 1001:1001 db
 
+# edit docker-compose.yml
 
 docker-compose build
 
