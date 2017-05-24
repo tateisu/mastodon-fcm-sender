@@ -392,7 +392,7 @@ app.post('/callback', (req, res) => {
         return;
     }
 
-    const tag = tag;
+    const tag = json.tag;
 
     Registration.findOne({
         where: {
