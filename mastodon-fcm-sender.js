@@ -36,10 +36,30 @@ const sequelize = new Sequelize(
 var appMap;
 var instanceMap;
 const loadSetting = () =>{
-    appMap = Hjson.parse(fs.readFileSync('config/app_map.hjson', 'utf8'));
-    instanceMap = Hjson.parse(fs.readFileSync('config/instance_map.hjson', 'utf8'));
+    //
+    var file = 'config/app_map.hjson';
+    try{
+        appMap= Hjson.parse(fs.readFileSync(file, 'utf8'));
+    }catch(e){
+        console.log(file + ": "+e )
+        throw e
+    }
+    //
+    file = 'config/instance_map.hjson';
+    try{
+        instanceMap = Hjson.parse(fs.readFileSync(file, 'utf8'));
+    }catch(e){
+        console.log(file + ": "+e )
+        throw e
+    }
 }
-loadSetting();
+
+try{
+    loadSetting();
+}catch(e){
+    console.log(e);
+    process.exit();
+}
 
 process.on('SIGHUP', function () {
     console.log('SIGHUP received. loading setting..');
