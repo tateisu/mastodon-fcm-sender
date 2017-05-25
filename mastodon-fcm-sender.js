@@ -35,38 +35,38 @@ const sequelize = new Sequelize(
 
 var appMap;
 var instanceMap;
-const loadSetting = () =>{
+const loadSetting = () => {
     //
     var file = 'config/app_map.hjson';
-    try{
-        appMap= Hjson.parse(fs.readFileSync(file, 'utf8'));
-    }catch(e){
-        console.log(file + ": "+e )
+    try {
+        appMap = Hjson.parse(fs.readFileSync(file, 'utf8'));
+    } catch (e) {
+        npmlog.log('error',file,e)
         throw e
     }
     //
     file = 'config/instance_map.hjson';
-    try{
+    try {
         instanceMap = Hjson.parse(fs.readFileSync(file, 'utf8'));
-    }catch(e){
-        console.log(file + ": "+e )
+    } catch (e) {
+        npmlog.log('error',file,e)
         throw e
     }
 }
 
-try{
+try {
     loadSetting();
-}catch(e){
-    console.log(e);
+} catch (e) {
+    npmlog.log('error','loadSetting',e.stack)
     process.exit();
 }
 
 process.on('SIGHUP', function () {
     console.log('SIGHUP received. loading setting..');
-    try{
+    try {
         loadSetting();
-    }catch(e){
-        console.log(e);
+    } catch (e) {
+        npmlog.log('error','loadSetting',e.stack)
     }
 });
 
@@ -168,7 +168,14 @@ const Registration = sequelize.define('fcm_sender_registration', {
     deviceToken: {
         type: Sequelize.STRING
     }
-
+}, {
+    indexes: [
+        {
+            name: 'iat',
+            unique: true,
+            fields: ['instanceUrl', 'appId', 'tag']
+        }
+    ]
 })
 
 const connectForUser = (registration) => {
@@ -408,13 +415,13 @@ app.post('/callback', (req, res) => {
     var error;
 
     const payload = req.body.payload;
-    if(!payload){
+    if (!payload) {
         log('error', "missing payload. json=" + util.inspect(json))
         res.status(400).send("missing payload.");
         return;
     }
-    
-    log('info','payload length='+payload.length);
+
+    log('info', 'payload length=' + payload.length);
 
     const appId = req.body.appId;
     error = checkAppId(appId);
