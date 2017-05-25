@@ -206,8 +206,8 @@ const disconnectForUser = (registration) => {
 
 const sendFCM = (registration, payload) => {
 
-    const ws_key = `${registration.instanceUrl}:${registration.app_id}:${registration.tag}`;
-    const log = (level, message) => npmlog.log(level, ws_key, message)
+    const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
+    const log = (level, message) => npmlog.log(level, log_key, message)
 
     var serverKey = getServerKey(registration.appId);
     if (!serverKey) {
@@ -220,7 +220,8 @@ const sendFCM = (registration, payload) => {
         to: registration.deviceToken,
         priority: 'high',
         data: {
-            payload: payload
+            payload: payload,
+            tag: registration.tag
         }
     }
 
