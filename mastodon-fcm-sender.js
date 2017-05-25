@@ -220,12 +220,12 @@ const Registration = sequelize.define('fcm_sender_registration', {
 }, {
     indexes: [
         {
-            name: 'iat',
+            name: 'fcm_sender_registrations_iat',
             unique: true,
             fields: ['instanceUrl', 'appId', 'tag']
         },
         {
-            name: 'iat2',
+            name: 'fcm_sender_registrations_iat2',
             unique: false,
             fields: ['instanceUrl', 'appIdUser', 'tag']
         }
