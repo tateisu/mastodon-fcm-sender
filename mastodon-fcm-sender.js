@@ -279,14 +279,14 @@ app.post('/register', (req, res) => {
     const appId = req.body.app_id;
     error = checkAppId(appId);
     if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
         return;
     }
 
     const instanceUrl = req.body.instance_url.toLowerCase();
     error = checkInstanceUrl(instanceUrl, appId)
     if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
         return;
     }
 
@@ -336,14 +336,14 @@ app.post('/unregister', (req, res) => {
     const appId = req.body.app_id;
     error = checkAppId(appId);
     if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
         return;
     }
 
     const instanceUrl = req.body.instance_url.toLowerCase();
     error = checkInstanceUrl(instanceUrl, appId)
     if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
         return;
     }
 
@@ -377,7 +377,7 @@ app.post('/callback', (req, res) => {
     const payload = req.body.payload;
     if(!payload){
         log('error', "missing payload. json=" + util.inspect(json))
-        res.send(400, error);
+        res.status(400).send("missing payload.");
         return;
     }
     
@@ -386,14 +386,14 @@ app.post('/callback', (req, res) => {
     const appId = req.body.appId;
     error = checkAppId(appId);
     if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
         return;
     }
 
     const instanceUrl = req.body.instanceUrl;
     error = checkInstanceUrl(instanceUrl, appId)
     if (error) {
-        res.send(400, error);
+        res.status(400).send(error);
         return;
     }
 
