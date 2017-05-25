@@ -482,7 +482,7 @@ app.get('/counter', (req, res) => {
     fs.writeFileSync(file_tmp, Hjson.stringify(map));
     fs.renameSync(file_tmp, file)
 
-    res.status(200).send(count);
+    res.status(200).send(""+count);
 });
 
 
