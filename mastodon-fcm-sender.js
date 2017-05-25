@@ -244,7 +244,7 @@ const disconnectForUser = (registration) => {
     log('info', 'Registration destroyed.')
 }
 
-const sendFCM = (registration, payload) => {
+const sendFCM = (registration, payload_str) => {
 
     const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
     const log = (level, message) => npmlog.log(level, log_key, message)
@@ -256,12 +256,16 @@ const sendFCM = (registration, payload) => {
         return;
     }
 
+    log('info', 'payload length=' + payload_str.length);
+    const payload_json = JSON.parse(payload_str);
+    
     const firebaseMessage = {
         to: registration.deviceToken,
         priority: 'high',
         data: {
-            payload: payload,
-            tag: registration.tag
+            notification_tag: registration.tag,
+            // ペイロードそのものは大きすぎて送れない
+            notification_id: payload_json.id
         }
     }
 
@@ -420,8 +424,6 @@ app.post('/callback', (req, res) => {
         res.status(400).send("missing payload.");
         return;
     }
-
-    log('info', 'payload length=' + payload.length);
 
     const appId = req.body.appId;
     error = checkAppId(appId);
