@@ -41,7 +41,7 @@ const loadSetting = () => {
     try {
         appMap = Hjson.parse(fs.readFileSync(file, 'utf8'));
     } catch (e) {
-        npmlog.log('error',file,e)
+        npmlog.log('error', file, e)
         throw e
     }
     //
@@ -49,7 +49,7 @@ const loadSetting = () => {
     try {
         instanceMap = Hjson.parse(fs.readFileSync(file, 'utf8'));
     } catch (e) {
-        npmlog.log('error',file,e)
+        npmlog.log('error', file, e)
         throw e
     }
 }
@@ -57,7 +57,7 @@ const loadSetting = () => {
 try {
     loadSetting();
 } catch (e) {
-    npmlog.log('error','loadSetting',e.stack)
+    npmlog.log('error', 'loadSetting', e.stack)
     process.exit();
 }
 
@@ -66,7 +66,7 @@ process.on('SIGHUP', function () {
     try {
         loadSetting();
     } catch (e) {
-        npmlog.log('error','loadSetting',e.stack)
+        npmlog.log('error', 'loadSetting', e.stack)
     }
 });
 
@@ -141,6 +141,41 @@ const checkInstanceUrl = (instanceUrl, appId) => {
     return null;
 }
 
+// ユーザが用意したカスタム設定からインスタンス設定を探す
+const getInstanceEntryCustom = (userConfig, instanceUrl) => {
+    var instanceEntry = userConfig[instanceUrl];
+    if (!instanceEntry) {
+        instanceEntry = userConfig['*'];
+    }
+    return instanceEntry;
+}
+
+// ユーザが用意したカスタム設定とインスタンスURLの指定に問題がないか検証する
+const checkInstanceUrlCustom = (userConfig, instanceUrl) => {
+
+    if (!instanceUrl) {
+        return 'missing instance_url';
+    }
+
+    var instanceEntry = getInstanceEntryCustom(userConfig, instanceUrl);
+    if (!instanceEntry) {
+        return 'missing instance configuration for instance: ' + instanceUrl;
+    }
+
+    if (!instanceEntry.urlStreamingListenerRegister) {
+        return 'missing urlStreamingListenerRegister configuration: ' + instanceUrl;
+    }
+
+    if (!instanceEntry.urlStreamingListenerUnregister) {
+        return 'missing urlStreamingListenerUnregister configuration: ' + instanceUrl;
+    }
+
+    if (!instanceEntry.appId) {
+        return 'missing appId configuration: ' + instanceUrl;
+    }
+
+    return null;
+}
 
 const Registration = sequelize.define('fcm_sender_registration', {
 
@@ -167,79 +202,156 @@ const Registration = sequelize.define('fcm_sender_registration', {
 
     deviceToken: {
         type: Sequelize.STRING
+    },
+
+    userConfig: {
+        type: Sequelize.TEXT
+    },
+
+    userSecret: {
+        type: Sequelize.STRING
+    },
+
+    // ユーザ設定により与えられたアプリID。ListenerからコールバックされるときのアプリIDはこちらと照合する
+    appIdUser: {
+        type: Sequelize.STRING
     }
+
 }, {
     indexes: [
         {
             name: 'iat',
             unique: true,
             fields: ['instanceUrl', 'appId', 'tag']
+        },
+        {
+            name: 'iat2',
+            unique: false,
+            fields: ['instanceUrl', 'appIdUser', 'tag']
         }
     ]
 })
+
+const sendListenerRegister = (log, registration, url, appSecret) => {
+    if (url && appSecret) {
+        // streaming-listener に登録を出す
+        axios.post(url, querystring.stringify({
+            instance_url: registration.instanceUrl,
+            tag: registration.tag,
+            app_id: registration.appIdUser,
+            app_secret: appSecret,
+            access_token: registration.accessToken,
+            callback_url: callbackUrl
+        }), {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }).then(response => {
+            log('info', `listener returns ${response.status}: ${JSON.stringify(response.data)}`)
+        }).catch(error => {
+            log('error', "request to listener#register failed.");
+            log('error', util.inspect(error));
+        })
+    }
+}
+
+const sendUnregisterListener = (log, registration, url, appSecret) => {
+    if (url && appSecret) {
+        // streaming-listener に登録解除を出す
+        axios.post(url, querystring.stringify({
+            instance_url: registration.instanceUrl,
+            tag: registration.tag,
+            app_id: registration.appIdUser,
+            app_secret: appSecret
+        }), {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }).then(response => {
+            log('info', `listener returns ${response.status}: ${JSON.stringify(response.data)}`)
+        }).catch(error => {
+            log('error', "request to listener#unregister failed.");
+            log('error', util.inspect(error));
+        })
+    }
+}
+
 
 const connectForUser = (registration) => {
 
     const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
     const log = (level, message) => npmlog.log(level, log_key, message)
 
-    const instanceEntry = getInstanceEntry(registration.instanceUrl);
-    if (instanceEntry) {
-        const urlStreamingListenerRegister = instanceEntry.urlStreamingListenerRegister;
-        const appSecret = getAppSecret(instanceEntry, registration.appId)
-        if (urlStreamingListenerRegister && appSecret) {
-            // streaming-listener に登録を出す
-            axios.post(urlStreamingListenerRegister, querystring.stringify({
-                instance_url: registration.instanceUrl,
-                tag: registration.tag,
-                app_id: registration.appId,
-                app_secret: appSecret,
-                access_token: registration.accessToken,
-                callback_url: callbackUrl
-            }), {
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }
-            }).then(response => {
-                log('info', `listener returns ${response.status}: ${JSON.stringify(response.data)}`)
-            }).catch(error => {
-                log('error', "request to listener#register failed.");
-                log('error', util.inspect(error));
-            })
+    var userConfigStr = registration.userConfig;
+    var userConfig = null
+    if (userConfigStr) {
+        try {
+            userConfig = Hjson.parse(userConfig);
+        } catch (e) {
+            log('error', "user_config parse error: " + e);
+        }
+    }
+
+    if (!userConfig) {
+        const instanceEntry = getInstanceEntry(registration.instanceUrl);
+        if (instanceEntry) {
+            sendListenerRegister(
+                log,
+                registration,
+                instanceEntry.urlStreamingListenerRegister,
+                getAppSecret(instanceEntry, registration.appId)
+            );
+        }
+    } else {
+        const customEntry = getInstanceEntryCustom(userConfig, registration.instanceUrl);
+        if (customEntry) {
+            sendListenerRegister(
+                log,
+                registration,
+                customEntry.urlStreamingListenerRegister,
+                registration.userSecret
+            );
         }
     }
 }
-
 
 const disconnectForUser = (registration) => {
 
     const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
     const log = (level, message) => npmlog.log(level, log_key, message)
 
-    const instanceEntry = getInstanceEntry(registration.instanceUrl);
-    if (instanceEntry) {
-        const urlStreamingListenerUnregister = instanceEntry.urlStreamingListenerUnregister;
-        const appSecret = getAppSecret(instanceEntry, registration.appId)
-        if (urlStreamingListenerUnregister && appSecret) {
-            // streaming-listener に登録解除を出す
-            axios.post(urlStreamingListenerUnregister, querystring.stringify({
-                instance_url: registration.instanceUrl,
-                tag: registration.tag,
-                app_id: registration.appId,
-                app_secret: appSecret
-            }), {
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }
-            }).then(response => {
-                log('info', `listener returns ${response.status}: ${JSON.stringify(response.data)}`)
-            }).catch(error => {
-                log('error', "request to listener#unregister failed.");
-                log('error', util.inspect(error));
-            })
+    var userConfigStr = registration.userConfig;
+    var userConfig = null
+    if (userConfigStr) {
+        try {
+            userConfig = Hjson.parse(userConfig);
+        } catch (e) {
+            log('error', "user_config parse error: " + e);
         }
     }
 
+    if (!userConfig) {
+        const instanceEntry = getInstanceEntry(registration.instanceUrl);
+        if (instanceEntry) {
+            sendUnregisterListener(
+                log,
+                registration,
+                instanceEntry.urlStreamingListenerUnregister,
+                getAppSecret(instanceEntry, registration.appId)
+            );
+        }
+
+    } else {
+        const customEntry = getInstanceEntryCustom(userConfig, registration.instanceUrl);
+        if (customEntry) {
+            sendUnregisterListener(
+                log,
+                registration,
+                customEntry.urlStreamingListenerUnregister,
+                registration.userSecret
+            );
+        }
+    }
     registration.destroy();
     log('info', 'Registration destroyed.')
 }
@@ -258,7 +370,7 @@ const sendFCM = (registration, payload_str) => {
 
     log('info', 'payload length=' + payload_str.length);
     const payload_json = JSON.parse(payload_str);
-    
+
     const firebaseMessage = {
         to: registration.deviceToken,
         priority: 'high',
@@ -327,42 +439,81 @@ app.post('/register', (req, res) => {
         return;
     }
 
-    const instanceUrl = req.body.instance_url.toLowerCase();
-    error = checkInstanceUrl(instanceUrl, appId)
-    if (error) {
-        res.status(400).send(error);
-        return;
+    var userConfigStr = req.body.user_config;
+
+    var userConfig = null
+    if (userConfigStr) {
+        try {
+            userConfig = Hjson.parse(userConfig);
+        } catch (e) {
+            res.status(400).send("user_config parse error: " + e);
+        }
     }
 
+    const instanceUrl = req.body.instance_url.toLowerCase();
     const accessToken = req.body.access_token;
     const deviceToken = req.body.device_token;
     const tag = req.body.tag;
 
-    Registration
-        .findOrCreate({
-            where: {
-                instanceUrl: instanceUrl,
-                appId: appId,
-                tag: tag
-            }
-        })
-        .then(args => {
-            const model = args[0];
-            // const created = args[1];
+    var userSecret;
+    var appIdUser = appId;
+    if (!userConfig) {
+        error = checkInstanceUrl(instanceUrl, appId)
+        if (error) {
+            res.status(400).send(error);
+            return;
+        }
+    } else {
+        error = checkInstanceUrlCustom(userConfig, instanceUrl)
+        if (error) {
+            res.status(400).send(error);
+            return;
+        }
+        const customEntry = getInstanceEntryCustom(userConfig, instanceUrl);
+        if (!customEntry) {
+            res.status(400).send("missing configuration for instance: " + instanceUrl);
+            return;
+        }
 
-            if (model) {
-                model.update({
-                    lastUpdate: now,
-                    deviceToken: deviceToken,
-                    accessToken: accessToken,
-                }).then((ignored) => {
-                    // stream listener への接続を行う
-                    connectForUser(model);
-                });
-            }
-        }).catch(error => {
-            log('error', error, error.stack)
-        })
+        appIdUser = customEntry.appId;
+        if (!appIdUser) {
+            res.status(400).send("missing appId for instance: " + instanceUrl);
+            return;
+        }
+
+        userSecret = req.body.app_secret;
+        if (!userSecret) {
+            res.status(400).send("missing app_secret");
+            return;
+        }
+
+    }
+
+    Registration.findOrCreate({
+        where: {
+            instanceUrl: instanceUrl,
+            appId: appId,
+            tag: tag
+        }
+    }).then(args => {
+        const model = args[0];
+        // const created = args[1];
+
+        if (model) {
+            model.update({
+                lastUpdate: now,
+                deviceToken: deviceToken,
+                accessToken: accessToken,
+                userConfig: userConfigStr,
+                userSecret: userSecret,
+                appIdUser: appIdUser
+            }).then((ignored) => {
+                connectForUser(model);
+            });
+        }
+    }).catch(error => {
+        log('error', error, error.stack)
+    })
 
     res.sendStatus(202)
 })
@@ -375,22 +526,8 @@ app.post('/unregister', (req, res) => {
 
     const log = (level, message) => npmlog.log(level, "unregister", message)
 
-    var error;
-
     const appId = req.body.app_id;
-    error = checkAppId(appId);
-    if (error) {
-        res.status(400).send(error);
-        return;
-    }
-
     const instanceUrl = req.body.instance_url.toLowerCase();
-    error = checkInstanceUrl(instanceUrl, appId)
-    if (error) {
-        res.status(400).send(error);
-        return;
-    }
-
     const tag = req.body.tag;
 
     Registration.findOne({
@@ -416,29 +553,15 @@ app.post('/callback', (req, res) => {
 
     const log = (level, message) => npmlog.log(level, "callback", message)
 
-    var error;
-
     const payload = req.body.payload;
     if (!payload) {
-        log('error', "missing payload. json=" + util.inspect(json))
+        log('error', "missing payload. json=" + util.inspect(req.body))
         res.status(400).send("missing payload.");
         return;
     }
 
     const appId = req.body.appId;
-    error = checkAppId(appId);
-    if (error) {
-        res.status(400).send(error);
-        return;
-    }
-
     const instanceUrl = req.body.instanceUrl;
-    error = checkInstanceUrl(instanceUrl, appId)
-    if (error) {
-        res.status(400).send(error);
-        return;
-    }
-
     const tag = req.body.tag;
 
     Registration.findOne({
@@ -451,7 +574,19 @@ app.post('/callback', (req, res) => {
         if (registration) {
             sendFCM(registration, payload)
         } else {
-            log('info', `missing registration for ${instanceUrl},${appId},${tag},`)
+            Registration.findOne({
+                where: {
+                    instanceUrl: instanceUrl,
+                    appIdUser: appId,
+                    tag: tag,
+                }
+            }).then((registration) => {
+                if (registration) {
+                    sendFCM(registration, payload)
+                } else {
+                    log('info', `missing registration for ${instanceUrl},${appId},${tag}`)
+                }
+            });
         }
     }).catch(error => {
         log('error', error, error.stack)
@@ -484,7 +619,7 @@ app.get('/counter', (req, res) => {
     fs.writeFileSync(file_tmp, Hjson.stringify(map));
     fs.renameSync(file_tmp, file)
 
-    res.status(200).send(""+count);
+    res.status(200).send("" + count);
 });
 
 
