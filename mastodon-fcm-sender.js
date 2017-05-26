@@ -499,6 +499,8 @@ app.post('/register', (req, res) => {
         }
 
     }
+    
+    log('info',"userSecret="+userSecret);
 
     Registration.findOrCreate({
         where: {
