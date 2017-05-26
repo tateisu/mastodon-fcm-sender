@@ -444,7 +444,7 @@ app.post('/register', (req, res) => {
     var userConfig = null
     if (userConfigStr) {
         try {
-            log( "userConfigStr="+ util.inspect(userConfigStr))
+            log('info', "userConfigStr="+ util.inspect(userConfigStr))
             userConfig = Hjson.parse(userConfig);
         } catch (e) {
             res.status(400).send("user_config parse error: " + e);
