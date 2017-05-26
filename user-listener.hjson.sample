@@ -1,0 +1,7 @@
+{
+    "*": {
+        urlStreamingListenerRegister: "http://172.17.0.1:4002/register"
+        urlStreamingListenerUnregister: "http://172.17.0.1:4002/unregister"
+        appId: "jp.juggler.subwaytooter.tateisu"
+    }
+}
