@@ -286,7 +286,7 @@ const connectForUser = (registration) => {
     var userConfig = null
     if (userConfigStr) {
         try {
-            userConfig = Hjson.parse(userConfig);
+            userConfig = Hjson.parse(userConfigStr);
         } catch (e) {
             log('error', "user_config parse error: " + e);
         }
@@ -324,7 +324,7 @@ const disconnectForUser = (registration) => {
     var userConfig = null
     if (userConfigStr) {
         try {
-            userConfig = Hjson.parse(userConfig);
+            userConfig = Hjson.parse(userConfigStr);
         } catch (e) {
             log('error', "user_config parse error: " + e);
         }
@@ -443,12 +443,13 @@ app.post('/register', (req, res) => {
     var userConfigStr = req.body.user_config;
 
     var userConfig = null
-    if (userConfigStr) {
+    if (userConfigStr ) {
         try {
             userConfig = Hjson.parse(userConfigStr);
         } catch (e) {
-            log('error', "user_config parse error: " + e)
-            res.status(400).send("user_config parse error: " + e);
+            error = "user_config parse error: " + e;
+            log('error',error )
+            res.status(400).send(error);
             return;
         }
     }
