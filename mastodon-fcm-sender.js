@@ -426,7 +426,7 @@ app.use('/register', bodyParser.urlencoded({
 
 app.post('/register', (req, res) => {
 
-    const log = (level, message) => npmlog.log(level, "register", message)
+    const log = (level, message) => npmlog.log(level, "register:", message)
 
     const now = (new Date()).getTime();
 
@@ -435,6 +435,7 @@ app.post('/register', (req, res) => {
     const appId = req.body.app_id;
     error = checkAppId(appId);
     if (error) {
+        log('error', error);
         res.status(400).send(error);
         return;
     }
@@ -444,9 +445,9 @@ app.post('/register', (req, res) => {
     var userConfig = null
     if (userConfigStr) {
         try {
-            log('info', "userConfigStr="+ util.inspect(userConfigStr))
             userConfig = Hjson.parse(userConfigStr);
         } catch (e) {
+            log('error', "user_config parse error: " + e)
             res.status(400).send("user_config parse error: " + e);
             return;
         }
@@ -462,30 +463,38 @@ app.post('/register', (req, res) => {
     if (!userConfig) {
         error = checkInstanceUrl(instanceUrl, appId)
         if (error) {
+            log('error', error);
             res.status(400).send(error);
             return;
         }
     } else {
         error = checkInstanceUrlCustom(userConfig, instanceUrl)
         if (error) {
+            log('error', error);
             res.status(400).send(error);
             return;
         }
         const customEntry = getInstanceEntryCustom(userConfig, instanceUrl);
         if (!customEntry) {
-            res.status(400).send("missing configuration for instance: " + instanceUrl);
+            error = "missing configuration for instance: " + instanceUrl;
+            log('error', error);
+            res.status(400).send(error);
             return;
         }
 
         appIdUser = customEntry.appId;
         if (!appIdUser) {
-            res.status(400).send("missing appId for instance: " + instanceUrl);
+            error = "missing appId for instance: " + instanceUrl;
+            log('error', error);
+            res.status(400).send(error);
             return;
         }
 
         userSecret = req.body.app_secret;
         if (!userSecret) {
-            res.status(400).send("missing app_secret");
+            error = "missing app_secret";
+            log('error', error);
+            res.status(400).send(error);
             return;
         }
 
@@ -514,7 +523,7 @@ app.post('/register', (req, res) => {
             });
         }
     }).catch(error => {
-        log('error', error, error.stack)
+        log('error', error +":" +error.stack)
     })
 
     res.sendStatus(202)
@@ -543,7 +552,7 @@ app.post('/unregister', (req, res) => {
             disconnectForUser(registration)
         }
     }).catch(error => {
-        log('error', error, error.stack)
+        log('error', error +":" +error.stack)
     })
 
     res.sendStatus(202)
@@ -555,10 +564,13 @@ app.post('/callback', (req, res) => {
 
     const log = (level, message) => npmlog.log(level, "callback", message)
 
+    var error;
+    
     const payload = req.body.payload;
     if (!payload) {
-        log('error', "missing payload. json=" + util.inspect(req.body))
-        res.status(400).send("missing payload.");
+        error = "missing payload.";
+        log('error', error +" json=" + util.inspect(req.body) )
+        res.status(400).send(error);
         return;
     }
 
@@ -591,7 +603,7 @@ app.post('/callback', (req, res) => {
             });
         }
     }).catch(error => {
-        log('error', error, error.stack)
+        log('error', error +":" +error.stack)
     })
 
     res.sendStatus(202)
