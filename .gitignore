@@ -3,3 +3,4 @@ node_modules/
 config/*.hjson
 .eslintrc
 .jshintrc
+*.hjson
