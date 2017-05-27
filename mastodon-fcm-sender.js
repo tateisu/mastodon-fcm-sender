@@ -356,10 +356,54 @@ const disconnectForUser = (registration) => {
     log('info', 'Registration destroyed.')
 }
 
+const duplicateMap = {};
+
+
 const sendFCM = (registration, payload_str) => {
 
     const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
     const log = (level, message) => npmlog.log(level, log_key, message)
+
+    ///////////////////////////////
+    // get notification id
+    var notification_id;
+    try{
+        log('info', 'payload length=' + payload_str.length);
+        const payload_json = JSON.parse(payload_str);
+        notification_id = payload_json.id;
+        if( ! notification_id ){
+            log('error',"payload does not contain id");
+            return;
+        }
+    }catch(e){
+        log('error',"payload parse failed. "+e);
+        return;
+    }
+    
+    ///////////////////////////////
+    // duplication check
+    var duplicateLru = duplicateMap[log_key ]
+    if(! duplicateMap ){
+        duplicateLru = duplicateMap[log_key ] = [];
+    } 
+    var duplicateFound = false
+    for( var i = duplicateLru.length -1 ; i >= 0 ; -- i ){
+        if( duplicateLru[i] === notification_id ){
+            duplicateFound = true;
+            duplicateLru.splice( i,1)
+        }
+    }
+    while( duplicateLru.length >= 10 ){
+        duplicateLru.pop();
+    }
+    duplicateLru.unshift( notification_id )
+    if( duplicateFound ){
+        log('error',"duplicate found. notification id="+ notification_id );
+        return;
+    }
+
+    ///////////////////////////////
+    // send to FCM
 
     var serverKey = getServerKey(registration.appId);
     if (!serverKey) {
@@ -368,16 +412,13 @@ const sendFCM = (registration, payload_str) => {
         return;
     }
 
-    log('info', 'payload length=' + payload_str.length);
-    const payload_json = JSON.parse(payload_str);
-
     const firebaseMessage = {
         to: registration.deviceToken,
         priority: 'high',
         data: {
             notification_tag: registration.tag,
             // ペイロードそのものは大きすぎて送れない
-            notification_id: payload_json.id
+            notification_id: notification_id
         }
     }
 
@@ -498,11 +539,8 @@ app.post('/register', (req, res) => {
             res.status(400).send(error);
             return;
         }
-
     }
     
-    log('info',"userSecret="+userSecret);
-
     Registration.findOrCreate({
         where: {
             instanceUrl: instanceUrl,
