@@ -356,7 +356,7 @@ const disconnectForUser = (registration) => {
     log('info', 'Registration destroyed.')
 }
 
-const duplicateMap = {};
+const duplicationMap = {};
 
 
 const sendFCM = (registration, payload_str) => {
@@ -382,24 +382,29 @@ const sendFCM = (registration, payload_str) => {
     
     ///////////////////////////////
     // duplication check
-    var duplicateLru = duplicateMap[log_key ]
-    if(! duplicateMap ){
-        duplicateLru = duplicateMap[log_key ] = [];
+
+    var duplicationLru = duplicationMap[log_key ]
+    if(! duplicationLru ){
+        duplicationLru = duplicationMap[log_key ] = [];
     } 
+    
     var duplicateFound = false
-    for( var i = duplicateLru.length -1 ; i >= 0 ; -- i ){
-        if( duplicateLru[i] === notification_id ){
+    for( var i = duplicationLru.length -1 ; i >= 0 ; --i ){
+        if( duplicationLru[i] == notification_id ){
             duplicateFound = true;
-            duplicateLru.splice( i,1)
+            break;
         }
     }
-    while( duplicateLru.length >= 10 ){
-        duplicateLru.pop();
-    }
-    duplicateLru.unshift( notification_id )
     if( duplicateFound ){
-        log('error',"duplicate found. notification id="+ notification_id );
+        log('error',"duplication found. notification id="+ notification_id );
         return;
+    }else{
+        // make latest data is first.
+        duplicationLru.unshift( notification_id )
+        // keep size of LRU list.
+        while( duplicationLru.length > 10 ){
+            duplicationLru.pop();
+        }
     }
 
     ///////////////////////////////
