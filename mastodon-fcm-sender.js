@@ -367,42 +367,42 @@ const sendFCM = (registration, payload_str) => {
     ///////////////////////////////
     // get notification id
     var notification_id;
-    try{
+    try {
         log('info', 'payload length=' + payload_str.length);
         const payload_json = JSON.parse(payload_str);
         notification_id = payload_json.id;
-        if( ! notification_id ){
-            log('error',"payload does not contain id");
+        if (!notification_id) {
+            log('error', "payload does not contain id");
             return;
         }
-    }catch(e){
-        log('error',"payload parse failed. "+e);
+    } catch (e) {
+        log('error', "payload parse failed. " + e);
         return;
     }
-    
+
     ///////////////////////////////
     // duplication check
 
-    var duplicationLru = duplicationMap[log_key ]
-    if(! duplicationLru ){
-        duplicationLru = duplicationMap[log_key ] = [];
-    } 
-    
+    var duplicationLru = duplicationMap[log_key]
+    if (!duplicationLru) {
+        duplicationLru = duplicationMap[log_key] = [];
+    }
+
     var duplicateFound = false
-    for( var i = duplicationLru.length -1 ; i >= 0 ; --i ){
-        if( duplicationLru[i] == notification_id ){
+    for (var i = duplicationLru.length - 1; i >= 0; --i) {
+        if (duplicationLru[i] == notification_id) {
             duplicateFound = true;
             break;
         }
     }
-    if( duplicateFound ){
-        log('error',"duplication found. notification id="+ notification_id );
+    if (duplicateFound) {
+        log('error', "duplication found. notification id=" + notification_id);
         return;
-    }else{
+    } else {
         // make latest data is first.
-        duplicationLru.unshift( notification_id )
+        duplicationLru.unshift(notification_id)
         // keep size of LRU list.
-        while( duplicationLru.length > 10 ){
+        while (duplicationLru.length > 10) {
             duplicationLru.pop();
         }
     }
@@ -489,12 +489,12 @@ app.post('/register', (req, res) => {
     var userConfigStr = req.body.user_config;
 
     var userConfig = null
-    if (userConfigStr ) {
+    if (userConfigStr) {
         try {
             userConfig = Hjson.parse(userConfigStr);
         } catch (e) {
             error = "user_config parse error: " + e;
-            log('error',error )
+            log('error', error)
             res.status(400).send(error);
             return;
         }
@@ -545,7 +545,7 @@ app.post('/register', (req, res) => {
             return;
         }
     }
-    
+
     Registration.findOrCreate({
         where: {
             instanceUrl: instanceUrl,
@@ -569,7 +569,7 @@ app.post('/register', (req, res) => {
             });
         }
     }).catch(error => {
-        log('error', error +":" +error.stack)
+        log('error', error + ":" + error.stack)
     })
 
     res.sendStatus(202)
@@ -598,7 +598,7 @@ app.post('/unregister', (req, res) => {
             disconnectForUser(registration)
         }
     }).catch(error => {
-        log('error', error +":" +error.stack)
+        log('error', error + ":" + error.stack)
     })
 
     res.sendStatus(202)
@@ -611,11 +611,11 @@ app.post('/callback', (req, res) => {
     const log = (level, message) => npmlog.log(level, "callback", message)
 
     var error;
-    
+
     const payload = req.body.payload;
     if (!payload) {
         error = "missing payload.";
-        log('error', error +" json=" + util.inspect(req.body) )
+        log('error', error + " json=" + util.inspect(req.body))
         res.status(400).send(error);
         return;
     }
@@ -649,7 +649,7 @@ app.post('/callback', (req, res) => {
             });
         }
     }).catch(error => {
-        log('error', error +":" +error.stack)
+        log('error', error + ":" + error.stack)
     })
 
     res.sendStatus(202)
