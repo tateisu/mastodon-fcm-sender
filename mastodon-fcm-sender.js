@@ -364,6 +364,12 @@ const sendFCM = (registration, payload_str) => {
     const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
     const log = (level, message) => npmlog.log(level, log_key, message)
 
+    if( registration.instanceUrl && instanceUrl.toLowerCase().includes('mimumedon.com') ){
+	error = "mimumedon.com is not supported.";
+	log('error', error)
+	return;
+    }
+
     ///////////////////////////////
     // get notification id
     var notification_id;
@@ -505,6 +511,13 @@ app.post('/register', (req, res) => {
     const deviceToken = req.body.device_token;
     const tag = req.body.tag;
 
+    if( instanceUrl && instanceUrl.toLowerCase().includes('mimumedon.com') ){
+	error = "mimumedon.com is not supported.";
+	log('error', error)
+	res.status(400).send(error);
+	return;
+    }
+    
     var userSecret;
     var appIdUser = appId;
     if (!userConfig) {
