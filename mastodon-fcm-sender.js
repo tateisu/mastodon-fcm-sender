@@ -364,7 +364,7 @@ const sendFCM = (registration, payload_str) => {
     const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
     const log = (level, message) => npmlog.log(level, log_key, message)
 
-    if( registration.instanceUrl && instanceUrl.toLowerCase().includes('mimumedon.com') ){
+    if( registration.instanceUrl && registration.instanceUrl.toLowerCase().includes('mimumedon.com') ){
 	error = "mimumedon.com is not supported.";
 	log('error', error)
 	return;
