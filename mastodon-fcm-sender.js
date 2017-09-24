@@ -359,7 +359,7 @@ const disconnectForUser = (registration) => {
 const duplicationMap = {};
 
 
-const sendFCM = (registration, payload_str) => {
+const sendFCM = (registration, payload) => {
 
     const log_key = `${registration.instanceUrl}:${registration.appId}:${registration.tag}`;
     const log = (level, message) => npmlog.log(level, log_key, message)
@@ -374,8 +374,14 @@ const sendFCM = (registration, payload_str) => {
     // get notification id
     var notification_id;
     try {
-        log('info', 'payload length=' + payload_str.length);
-        const payload_json = JSON.parse(payload_str);
+        var payload_json;
+        if( 'string' === typeof payload ){
+            log('info', 'payload length=' + payload.length);
+            payload_json = JSON.parse(payload);
+        }else{
+            payload_json = payload;
+        }
+        
         notification_id = payload_json.id;
         if (!notification_id) {
             log('error', "payload does not contain id");
