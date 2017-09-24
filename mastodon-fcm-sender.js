@@ -365,9 +365,9 @@ const sendFCM = (registration, payload) => {
     const log = (level, message) => npmlog.log(level, log_key, message)
 
     if( registration.instanceUrl && registration.instanceUrl.toLowerCase().includes('mimumedon.com') ){
-	error = "mimumedon.com is not supported.";
-	log('error', error)
-	return;
+	   error = "mimumedon.com is not supported.";
+	   log('error', error)
+	   return;
     }
 
     ///////////////////////////////
@@ -518,10 +518,10 @@ app.post('/register', (req, res) => {
     const tag = req.body.tag;
 
     if( instanceUrl && instanceUrl.toLowerCase().includes('mimumedon.com') ){
-	error = "mimumedon.com is not supported.";
-	log('error', error)
-	res.status(400).send(error);
-	return;
+	   error = "mimumedon.com is not supported.";
+	   log('error', error)
+	   res.status(400).send(error);
+	   return;
     }
     
     var userSecret;
