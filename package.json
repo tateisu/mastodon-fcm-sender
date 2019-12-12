@@ -1,6 +1,6 @@
 {
     "name": "mastodon-fcm-sender",
-    "version": "0.0.1",
+    "version": "0.0.6",
     "description": "relays notification from mastodon-streaming-listener to Firebase Cloud Messaging",
     "main": "mastodon-fcm-sender.js",
     "scripts": {
